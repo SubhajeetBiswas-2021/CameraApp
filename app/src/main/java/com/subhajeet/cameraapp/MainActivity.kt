@@ -58,7 +58,8 @@ fun Permission() {
 
     if(isGranted.value){
         //camera open if isGranted is true
-        Text(text = "Permission Granted")
+        //Text(text = "Permission Granted")
+        Camera()
     }else{
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center){
             Button(onClick= {launcher.launch(permission.toTypedArray())}){    //since we had taken list so typed array is needed
