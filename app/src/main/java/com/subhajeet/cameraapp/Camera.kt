@@ -8,17 +8,31 @@ import androidx.camera.core.ImageCapture
 import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Cameraswitch
+import androidx.compose.material.icons.filled.FlashOff
+import androidx.compose.material.icons.filled.FlashOn
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
 import kotlin.coroutines.resume
@@ -35,7 +49,7 @@ fun Camera() {
     val previewView = remember{ PreviewView(context)}
     // previewView is a normal android view where we can see  the live camera feed that comes on background.
 
-    val cameraSelector by remember { mutableStateOf(CameraSelector.DEFAULT_BACK_CAMERA) }
+    var cameraSelector by remember { mutableStateOf(CameraSelector.DEFAULT_BACK_CAMERA) }
     //Choosing lens , means through which lens I want to capture image ,as there are two lens front and back
     //so here we specify that which lens is selected currently
 
@@ -76,6 +90,42 @@ fun Camera() {
             factory = {previewView},
             modifier = Modifier.fillMaxSize()
         )
+
+        Row(modifier=Modifier.align(Alignment.TopCenter).padding(16.dp),
+            horizontalArrangement = Arrangement.SpaceBetween) {
+
+            IconButton(
+                onClick = {
+                    isFlashOn = !isFlashOn
+                    camera?.cameraControl?.enableTorch(isFlashOn)
+                }
+            ) {
+                Icon(
+                    imageVector = if(isFlashOn) Icons.Default.FlashOn else Icons.Default.FlashOff,
+                    contentDescription = null,
+                    tint = Color.White,
+                    modifier=Modifier.size(30.dp)
+                )
+            }
+
+            Spacer(modifier = Modifier.weight(1f))
+
+            IconButton(
+                onClick = {
+                    cameraSelector = if (cameraSelector == CameraSelector.DEFAULT_BACK_CAMERA)
+                        CameraSelector.DEFAULT_FRONT_CAMERA
+                    else
+                        CameraSelector.DEFAULT_BACK_CAMERA
+                }
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Cameraswitch,
+                    contentDescription = null,
+                    tint = Color.White,
+                    modifier=Modifier.size(30.dp)
+                )
+            }
+        }
     }
 
 }
