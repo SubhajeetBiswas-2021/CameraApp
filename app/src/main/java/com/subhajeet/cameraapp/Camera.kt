@@ -1,10 +1,14 @@
 package com.subhajeet.cameraapp
 
+import android.content.ContentValues
 import android.content.Context
+import android.provider.MediaStore
+import android.util.Log
 import android.widget.Toast
 import androidx.camera.core.Camera
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageCapture
+import androidx.camera.core.ImageCaptureException
 import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
@@ -13,9 +17,11 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Camera
 import androidx.compose.material.icons.filled.Cameraswitch
 import androidx.compose.material.icons.filled.FlashOff
 import androidx.compose.material.icons.filled.FlashOn
@@ -92,7 +98,8 @@ fun Camera() {
         )
 
         Row(modifier=Modifier.align(Alignment.TopCenter).padding(16.dp),
-            horizontalArrangement = Arrangement.SpaceBetween) {
+            horizontalArrangement = Arrangement.SpaceBetween)
+        {
 
             IconButton(
                 onClick = {
@@ -126,6 +133,26 @@ fun Camera() {
                 )
             }
         }
+
+        Row(modifier = Modifier.align(Alignment.BottomCenter).padding(50.dp),
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.CenterVertically) {
+            Box{
+                IconButton(
+                    onClick = {
+                        capturePhoto(imageCapture,context)
+                    }
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Camera,
+                        contentDescription = null,
+                        tint = Color.White,
+                        modifier = Modifier.size(70.dp).align(Alignment.Center)
+                    )
+
+                }
+            }
+        }
     }
 
 }
@@ -140,4 +167,47 @@ private suspend fun Context.getCameraProvider(): ProcessCameraProvider = suspend
             continuation.resume(cameraProviderFuture.get())
         },ContextCompat.getMainExecutor(this)
     )
+}
+
+
+private fun capturePhoto(imageCapture: ImageCapture,context: Context){
+
+    val name = "cameraApp${System.currentTimeMillis()}.jpg"    //Name of the image that will be captured
+
+
+    //creating meta data content for image
+    val contentValues = ContentValues().apply {
+        put(MediaStore.MediaColumns.DISPLAY_NAME,name)
+        put(MediaStore.MediaColumns.MIME_TYPE,"image/jpeg")
+        put(MediaStore.Images.Media.RELATIVE_PATH,"Pictures/CameraApp")
+    }
+
+    //logic for Saving Image
+    // Create output options object which contains file + metadata
+    val outputOptions = ImageCapture.OutputFileOptions
+        .Builder(context.contentResolver,
+            MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+            contentValues)
+        .build()
+
+    // Set up image capture listener, which is triggered after photo has
+    // been taken
+    imageCapture.takePicture(
+        outputOptions,
+        ContextCompat.getMainExecutor(context),
+        object : ImageCapture.OnImageSavedCallback {
+            override fun onError(exc: ImageCaptureException) {
+                Log.d("Camera","Photo capture failed:${exc.message}")
+            }
+
+            override fun
+                    onImageSaved(output: ImageCapture.OutputFileResults){
+                val msg = "Photo capture succeeded: ${output.savedUri}"
+                //Giving toast so that we can understand that the image had got captured.
+                Toast.makeText(context,msg,Toast.LENGTH_SHORT).show()
+                Log.d("Camera",msg)
+            }
+        }
+    )
+
 }
